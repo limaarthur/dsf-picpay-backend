@@ -11,7 +11,7 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Entity(name = "transactions")
-@Table(name = "transaction")
+@Table(name = "transactions")
 @Getter
 @Setter
 @AllArgsConstructor
@@ -24,12 +24,12 @@ public class Transaction {
 
     private BigDecimal amount;
 
-    @ManyToMany
+    @ManyToOne
     @JoinColumn(name = "sender_id")
     private User sender;
 
     @JoinColumn(name = "receiver_id")
-    @ManyToMany
+    @ManyToOne
     private User receiver;
 
     private LocalDateTime timestamp;
