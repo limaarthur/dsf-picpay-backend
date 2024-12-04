@@ -1,5 +1,6 @@
 package com.picpaysimple.entities.wallet;
 
+import com.picpaysimple.dtos.WalletDTO;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.usertype.UserType;
@@ -39,4 +40,13 @@ public class Wallet {
     @Enumerated(EnumType.STRING)
     @JoinColumn(name = "wallet_type")
     private WalletType walletType;
+
+    public Wallet(WalletDTO data) {
+        this.fullName = data.fullName();
+        this.document = data.document();
+        this.balance = data.balance();
+        this.walletType = data.walletType();
+        this.password = data.password();
+        this.email = data.email();
+    }
 }
