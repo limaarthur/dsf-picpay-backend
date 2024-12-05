@@ -39,6 +39,16 @@ class WalletRepositoryTest {
         assertThat(foundedWallet.isPresent()).isTrue();
     }
 
+    @Test
+    @DisplayName("Should not get Wallet from DB when user not exists")
+    void findWalletByDocumentFailure() {
+        String document = "99999999901";
+
+        Optional<Wallet> foundedWallet = this.walletRepository.findWalletByDocument(document);
+
+        assertThat(foundedWallet.isEmpty()).isTrue();
+    }
+
     private Wallet createWallet(WalletDTO data) {
         Wallet newWallet = new Wallet(data);
         this.entityManager.persist(newWallet);
