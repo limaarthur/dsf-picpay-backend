@@ -5,14 +5,9 @@ import com.picpaysimple.entities.transaction.Transaction;
 import com.picpaysimple.entities.wallet.Wallet;
 import com.picpaysimple.repositories.TransactionRepository;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestTemplate;
 
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.Map;
 
 @Service
 public class TransactionService {
@@ -24,7 +19,7 @@ public class TransactionService {
     private TransactionRepository transactionRepository;
 
     @Autowired
-    private RestTemplate restTemplate;
+    private AuthorizationService authorizationService;
 
     @Autowired
     private NotificationService notificationService;
@@ -35,7 +30,7 @@ public class TransactionService {
 
         walletService.validateTransaction(sender, transactionDTO.value());
 
-        boolean isAuthorized = this.authorizeTransaction(sender, transactionDTO.value());
+        boolean isAuthorized = this.authorizationService.authorizeTransaction(sender, transactionDTO.value());
         if (!isAuthorized) {
             throw new Exception("Transação não autorizada");
         }
@@ -57,14 +52,5 @@ public class TransactionService {
         this.notificationService.senderNotification(receiver, "Transação recebida com sucesso");
 
         return newtransaction;
-    }
-
-    public boolean authorizeTransaction(Wallet sender, BigDecimal value) {
-        ResponseEntity<Map> authorizationResponse = restTemplate.getForEntity("https://run.mocky.io/v3/6d4e7e3e-9718-4512-9758-60cc20cd967f", Map.class);
-
-        if (authorizationResponse.getStatusCode() == HttpStatus.OK) {
-            String message = (String) authorizationResponse.getBody().get("message");
-            return "Autorizado".equalsIgnoreCase(message);
-        } else return false;
     }
 }
