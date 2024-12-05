@@ -5,6 +5,7 @@ import com.picpaysimple.entities.wallet.Wallet;
 import com.picpaysimple.entities.wallet.WalletType;
 import com.picpaysimple.repositories.TransactionRepository;
 import org.hibernate.usertype.UserType;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -14,6 +15,7 @@ import org.mockito.MockitoAnnotations;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.math.BigDecimal;
+import java.util.concurrent.ExecutionException;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
@@ -44,7 +46,7 @@ class TransactionServiceTest {
 
     @Test
     @DisplayName("Should create transaction successfully when everything is OK")
-    void createTransaction() throws Exception {
+    void createTransactionSucces() throws Exception {
         Wallet sender = new Wallet(1L, "Maria Silva", "99999999901", "maria.silva@gmail.com", "maria12345", new BigDecimal(10), WalletType.COMMON);
         Wallet receiver = new Wallet(2L, "Joao da Costa", "65845202055", "joaodacosta@gmail.com", "joao65484", new BigDecimal(10), WalletType.COMMON);
 
@@ -66,5 +68,24 @@ class TransactionServiceTest {
 
         verify(notificationService, times(1)).senderNotification(sender, "Transação realizada com sucesso");
         verify(notificationService, times(1)).senderNotification(receiver, "Transação recebida com sucesso");
+    }
+
+    @Test
+    @DisplayName("Should throw Exception when Transaction is not allowed")
+    void createTransactionFailure() throws Exception {
+        Wallet sender = new Wallet(1L, "Maria Silva", "99999999901", "maria.silva@gmail.com", "maria12345", new BigDecimal(10), WalletType.COMMON);
+        Wallet receiver = new Wallet(2L, "Joao da Costa", "65845202055", "joaodacosta@gmail.com", "joao65484", new BigDecimal(10), WalletType.COMMON);
+
+        when(walletService.findWalletById(1L)).thenReturn(sender);
+        when(walletService.findWalletById(2L)).thenReturn(receiver);
+
+        when(authorizationService.authorizeTransaction(any(), any())).thenReturn(false);
+
+        Exception thrown = Assertions.assertThrows(Exception.class, () -> {
+            TransactionDTO request = new TransactionDTO(new BigDecimal(10), 1L, 2L);
+            transactionService.createTransaction(request);
+        });
+
+        Assertions.assertEquals("Transação não autorizada", thrown.getMessage());
     }
 }
